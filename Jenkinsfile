@@ -1,26 +1,60 @@
 pipeline {
     agent any
+
+    environment {
+        FIREBASE_TOKEN  = credentials('firebase-token')   // Secret text ใน Jenkins Credentials
+        FIREBASE_PROJECT = 'assignment5-cloud-f2caa'      // Firebase Project ID
+        DOCKER_IMAGE = 'frontend-image:latest'             
+    }
+
     stages {
-        stage('Clone') {
+        stage('Checkout') {
             steps {
-                echo "Cloning repo..."
+                echo '🔄 Cloning repository...'
                 checkout scm
             }
         }
-        stage('Build') {
+
+        stage('Build Frontend') {
             steps {
-                echo "Building project..."
+                dir('frontend') {
+                    echo 'Installing frontend dependencies...'
+                    sh 'npm ci' 
+
+                    echo 'Building frontend with Vite...'
+                    sh 'npm run build'
+                }
             }
         }
-        stage('Test') {
+
+        stage('Deploy Frontend to Firebase') {
             steps {
-                echo "Running tests..."
+                dir('frontend') {
+                    echo 'Deploying frontend to Firebase Hosting...'
+                    sh 'npx firebase deploy --only hosting --project=$FIREBASE_PROJECT --token=$FIREBASE_TOKEN'
+                }
             }
         }
-        stage('Deploy') {
+
+        stage('Build Backend Docker Image') {
             steps {
-                echo "Deploying..."
+                echo 'Building backend Docker image...'
+                sh 'docker build -t $DOCKER_IMAGE .'
             }
+        }
+
+        stage('Run Backend Container (Dev/Test)') {
+            steps {
+                echo 'Running backend container...'
+                sh 'docker run -d -p 5000:5000 $DOCKER_IMAGE'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up Docker containers...'
+            sh 'docker ps -aq | xargs -r docker rm -f || true'
         }
     }
 }
