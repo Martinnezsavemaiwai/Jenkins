@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18'
-        }
-    }
-
+    agent any
     environment {
         FIREBASE_TOKEN  = credentials('firebase-token')   // ต้องเพิ่มใน Jenkins Credentials
         FIREBASE_PROJECT = 'assignment5-cloud-f2caa'
