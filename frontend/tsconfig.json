@@ -1,4 +1,11 @@
 {
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@lib/*": ["src/lib/*"]  // เพิ่มบรรทัดนี้ถ้า alias ของ lib ยังไม่ถูกตั้ง
+    }
+  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
